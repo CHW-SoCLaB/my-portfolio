@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>작업물 · 조형원</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="top"><a href="index.html">소개</a><a href="research.html">연구</a><a class="on" href="works.html">작업물</a></nav>
+<main>
+  <h1>작업물</h1>
+  <p class="sub">연구 결과를 직접 만져 볼 수 있게 만든 것들입니다.</p>
+
+  <div class="card">
+    <span class="tag">대시보드 · HTML 한 파일</span>
+    <h3 style="margin-top:8px">네트워크 경량화 vs 정확도</h3>
+    <p>Sensors 2026 논문의 표 4(네트워크 구조 9개의 파라미터 수와 정확도)와 표 5(이전 연구 7편과의 비교)를 한 화면에 모은 대시보드입니다. 외부 라이브러리와 인터넷 없이 브라우저에서 바로 열립니다.</p>
+    <ul>
+      <li><b>맨 위 한 줄</b>: 제안 네트워크(8번)는 파라미터 20,576개로 정확도 96.1%. 가장 정확한 9번보다 파라미터 78% 적고, 이전 연구 7편보다 83~99.999% 작음</li>
+      <li><b>그래프 1</b>: 네트워크 9개의 파라미터 수 × 정확도 산점도 (제안 네트워크 강조)</li>
+      <li><b>그래프 2</b>: 이전 연구와의 정확도(위)·모델 크기 로그축(아래) 비교 막대</li>
+      <li><b>그래프 3</b>: 연구별 낙상/비낙상 분류 동작 수</li>
+      <li><b>필터</b>: Conv 층 수, FC 은닉층 유무, 레이더 종류, 최소 정확도, 파라미터 축 선형/로그</li>
+    </ul>
+    <p><a class="btn" href="dashboard.html">대시보드 열기</a></p>
+    <p class="note">자료 출처: 논문 표 4·표 5. 대시보드 안의 값은 논문과 같고, 공저자 정보는 넣지 않았습니다.</p>
+  </div>
+
+  <h2>사용 도구</h2>
+  <div class="card">
+    <div class="wrap"><table>
+      <tr><th>하드웨어 설계</th><td>Verilog, SystemVerilog, Vivado(IP·합성·구현), ModelSim 시뮬레이션, C 펌웨어(Xilinx SDK), Zynq UltraScale+ ZCU104</td></tr>
+      <tr><th>신호 처리·학습</th><td>Python, PyTorch, STFT 기반 전처리, 고정소수점 FFT 설계</td></tr>
+      <tr><th>측정</th><td>24GHz CW 레이더(Infineon Sense2GoL)</td></tr>
+      <tr><th>정리·시각화</th><td>HTML/CSS/JavaScript 인라인 SVG 대시보드</td></tr>
+    </table></div>
+  </div>
+</main>
+<footer>이 페이지는 Claude Code와 함께 만들었고 내용은 본인이 확인했다. 대시보드 자료 출처: Sensors 2026, 26, 2469 표 4·표 5.</footer>
+</body>
+</html>

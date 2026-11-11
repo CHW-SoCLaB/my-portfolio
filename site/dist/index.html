@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>조형원 연구 포트폴리오</title>
+<meta name="description" content="레이더 기반 낙상 감지 신경망을 1비트로 줄여 FPGA에서 실시간으로 동작시킨 연구 포트폴리오">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="top"><a class="on" href="index.html">소개</a><a href="research.html">연구</a><a href="works.html">작업물</a></nav>
+<main>
+  <h1>조형원</h1>
+  <p class="sub">한국항공대학교 스마트항공모빌리티학과 석사</p>
+
+  <p class="lead">낙상 감지 신경망을 <b>2.5KB</b>까지 줄여 FPGA에서 <b>실시간</b>으로 돌아가게 만든 사람</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="k">낙상 분류 정확도</div><div class="v">96.1%</div><div class="d">낙상 5종 + 비낙상 7종, 12개 동작</div></div>
+    <div class="tile"><div class="k">네트워크 파라미터</div><div class="v">20,576개</div><div class="d">약 2.5KB. 이전 연구 대비 최대 99.9% 감소</div></div>
+    <div class="tile"><div class="k">처리 시간 단축</div><div class="v">89.5배</div><div class="d">SW 230.9ms → FPGA SoC 2.58ms</div></div>
+  </div>
+  <p class="note">세 숫자의 출처: Sensors 2026, 26, 2469 (제1저자)</p>
+
+  <h2>할 수 있는 일</h2>
+  <div class="card">
+    <ul class="plain">
+      <li><b>신경망을 1비트로 줄여 FPGA 위에서 돌아가게 만들기</b><br><span class="note">BNN/BCNN 분류기를 XNOR·popcount 기반 가속기로 설계해 ZCU104에서 검증. 논문 네 편에 되풀이됨 → <a href="research.html#hw">가속기 설계</a></span></li>
+      <li><b>레이더 신호를 직접 모아 학습용 데이터셋 만들기</b><br><span class="note">24GHz CW 레이더로 피험자 5명, 12개 동작, 2,570 샘플을 7회 세션에 걸쳐 수집 → <a href="research.html#data">데이터셋 구축</a></span></li>
+      <li><b>소프트웨어 대비 가속 효과를 자원·시간·전력 숫자로 증명하기</b><br><span class="note">SW 230.9ms 대 HW 2.58ms(89.5배), GPU 993.6ms 대 3.6ms(99.6% 감소), LUT·BRAM·전력까지 표로 제시 → <a href="research.html#papers">논문</a></span></li>
+    </ul>
+  </div>
+
+  <h2>대표 연구</h2>
+  <div class="card">
+    <span class="tag">SCI(E) 저널 · 제1저자</span>
+    <h3 style="margin-top:8px">FPGA Implementation of a Radar-Based Fall Detection System Using Binarized Convolutional Neural Networks</h3>
+    <p class="note">Sensors 2026, 26, 2469 · <a href="https://doi.org/10.3390/s26082469" target="_blank" rel="noopener">doi:10.3390/s26082469</a></p>
+    <p><b>연구 질문</b>: 레이더 기반 낙상 감지를 작고 전력이 낮은 엣지 장치에서 실시간으로 돌릴 수 있는가?</p>
+    <p>데이터 수집, 네트워크 설계, 가속기 RTL, SoC 통합까지 한 편에 모은 연구입니다. 파라미터 20,576개로 정확도 96.1%, 전체 처리 2.58ms를 얻었습니다.</p>
+    <p><a class="btn" href="research.html#main">연구 질문 · 한 일 · 알아낸 것 · 다음 할 것</a></p>
+  </div>
+
+  <h2 id="pubs">논문</h2>
+  <div class="card">
+    <ul class="plain">
+      <li><span class="tag">저널</span><b>FPGA Implementation of a Radar-Based Fall Detection System Using Binarized Convolutional Neural Networks</b><br><span class="note">Sensors 2026, 26, 2469 · 제1저자 · 게재 2026-04 · <a href="https://doi.org/10.3390/s26082469" target="_blank" rel="noopener">DOI</a></span></li>
+      <li><span class="tag">저널</span><b>Fall detection based on continuous wave radar sensor using binarized neural networks</b><br><span class="note">Applied Sciences 2025, 15, 546 · 제1저자</span></li>
+      <li><span class="tag">학회</span><b>CW 레이다 기반 낙상 감지 시스템의 FPGA 구현</b><br><span class="note">2025년 대한전자공학회 하계학술대회 · 제1저자</span></li>
+      <li><span class="tag">학회</span><b>CW 레이다 센서 기반 경량 낙상 감지 시스템</b><br><span class="note">2024년 한국전기전자학회 학술대회 · 제1저자</span></li>
+    </ul>
+    <p class="note" style="margin-top:8px"><a href="research.html#papers">각 논문의 숫자 결과 보기</a></p>
+  </div>
+
+  <h2>경험</h2>
+  <div class="card">
+    <ul class="plain">
+      <li><b>레이더 낙상 데이터셋 구축과 BNN 학습 환경</b><br><span class="note">24GHz CW 레이더 측정 환경 설계, STFT 전처리, 고정소수점 FFT 포맷 6종 비교, 네트워크 구조 9종 비교. Python/PyTorch</span></li>
+      <li><b>전처리 가속기(PPU)와 신경망 가속기(NNU) RTL 설계</b><br><span class="note">Verilog/SystemVerilog, Vivado, C 펌웨어. AXI로 마이크로프로세서와 통합해 ZCU104에 구현</span></li>
+      <li><b>수업 조교</b><br><span class="note">기초공학설계, 디지털논리회로 메인 조교</span></li>
+    </ul>
+  </div>
+
+  <h2>작업물</h2>
+  <div class="card">
+    <span class="tag">대시보드</span>
+    <h3 style="margin-top:8px">네트워크 경량화 vs 정확도</h3>
+    <p>논문 표 4(네트워크 9개 구조)와 표 5(이전 연구 7편 비교)를 한 화면에서 비교하는 대시보드입니다. Conv 층 수, FC 은닉층, 레이더 종류, 최소 정확도로 조건을 바꿔 볼 수 있습니다.</p>
+    <p><a class="btn" href="works.html">작업물 보기</a> <a class="btn" href="dashboard.html">대시보드 바로 열기</a></p>
+  </div>
+</main>
+<footer>이 페이지는 Claude Code와 함께 만들었고 내용은 본인이 확인했다. 자료 출처: 본인 논문 4편(Sensors 2026, Applied Sciences 2025, 2025 대한전자공학회, 2024 한국전기전자학회).</footer>
+</body>
+</html>

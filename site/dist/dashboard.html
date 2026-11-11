@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>네트워크 경량화 vs 정확도</title>
+<style>
+  :root {
+    --bg: #fafaf7; --card: #fff; --ink: #1d1d1b; --sub: #6b6b66; --line: #e4e3dc;
+    --accent: #1f7a4d; --soft: #e8f4ec; --bad: #c0392b; --badsoft: #fbeae8;
+    --other: #7a8aa6; --fall: #c2410c; --nonfall: #2563eb;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.7 "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 56px; }
+  h1 { font-size: 26px; line-height: 1.35; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 0 0 8px; }
+  .lead { color: var(--sub); margin: 0 0 18px; }
+  .note { font-size: 13.5px; color: var(--sub); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin: 12px 0; }
+  .big { font-size: 22px; font-weight: 700; line-height: 1.45; }
+  .big b { color: var(--accent); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 14px; }
+  .tile { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+  .tile .k { font-size: 13px; color: var(--sub); }
+  .tile .v { font-size: 22px; font-weight: 700; }
+  .tile .d { font-size: 13px; color: var(--sub); }
+  .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 20px; }
+  fieldset { border: 0; padding: 0; margin: 0; }
+  legend { font-size: 14px; color: var(--sub); padding: 0; margin-bottom: 4px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 15px; }
+  .opts label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+  input[type=checkbox], input[type=radio] { accent-color: var(--accent); width: 16px; height: 16px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .wrap { overflow-x: auto; }
+  svg { display: block; width: 100%; min-width: 560px; height: auto; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13.5px; color: var(--sub); margin-bottom: 4px; }
+  .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; }
+  .empty { background: var(--badsoft); color: var(--bad); border-radius: 10px; padding: 12px 14px; margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 5px 8px; text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--sub); font-weight: 600; font-size: 12.5px; }
+  tr.hi td { background: var(--soft); font-weight: 700; }
+  tr.dim td { color: #aaa; }
+  footer { margin-top: 28px; font-size: 13.5px; color: var(--sub); border-top: 1px solid var(--line); padding-top: 14px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>네트워크 경량화 vs 정확도</h1>
+  <p class="lead">레이더 기반 낙상 감지용 이진화 CNN(BCNN) 논문의 실험 결과입니다. 네트워크 구조 9가지와 이전 연구 7편을 「크기 대비 정확도」로 비교합니다.</p>
+
+  <div id="empty" class="empty" hidden>선택한 조건에 맞는 다른 네트워크·연구가 없어요. 제안 네트워크만 표시합니다.</div>
+
+  <div class="card">
+    <div class="note">가장 중요한 결과</div>
+    <div class="big" id="headline"></div>
+    <div class="tiles">
+      <div class="tile"><div class="k">제안 네트워크 정확도</div><div class="v" id="t1"></div><div class="d" id="t1d"></div></div>
+      <div class="tile"><div class="k">제안 네트워크 파라미터</div><div class="v" id="t2"></div><div class="d" id="t2d"></div></div>
+      <div class="tile"><div class="k">정확도 1위 네트워크 (조건 안)</div><div class="v" id="t3"></div><div class="d" id="t3d"></div></div>
+      <div class="tile"><div class="k">이전 연구 중 최소 모델 (조건 안)</div><div class="v" id="t4"></div><div class="d" id="t4d"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>조건 바꿔 보기</h2>
+    <div class="filters">
+      <fieldset>
+        <legend>Conv 층 수 (표 4)</legend>
+        <div class="opts">
+          <label><input type="radio" name="conv" value="all" checked> 모두</label>
+          <label><input type="radio" name="conv" value="2"> 2층</label>
+          <label><input type="radio" name="conv" value="3"> 3층</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>FC 은닉층(32) (표 4)</legend>
+        <div class="opts">
+          <label><input type="radio" name="fc" value="all" checked> 모두</label>
+          <label><input type="radio" name="fc" value="yes"> 있음</label>
+          <label><input type="radio" name="fc" value="no"> 없음</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>레이더 종류 (표 5)</legend>
+        <div class="opts">
+          <label><input type="checkbox" class="f-radar" value="CW" checked> CW</label>
+          <label><input type="checkbox" class="f-radar" value="FMCW" checked> FMCW</label>
+          <label><input type="checkbox" class="f-radar" value="UWB" checked> UWB</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>최소 정확도 <b id="accv"></b> (이보다 낮으면 흐리게)</legend>
+        <input id="acc" type="range" min="85" max="97" step="0.5" value="85">
+      </fieldset>
+      <fieldset>
+        <legend>파라미터 축 (그래프 1)</legend>
+        <div class="opts">
+          <label><input type="radio" name="axis" value="lin" checked> 선형</label>
+          <label><input type="radio" name="axis" value="log"> 로그</label>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1. 네트워크 9개: 파라미터 수 × 정확도</h2>
+    <p class="note">왼쪽 위(작고 정확)에 있을수록 좋아요. 초록 큰 점이 제안 네트워크(8번)예요.</p>
+    <div class="wrap"><svg id="c1" viewBox="0 0 900 340" role="img" aria-label="네트워크별 파라미터 수와 정확도 산점도"></svg></div>
+    <div class="wrap" style="margin-top:10px">
+      <table>
+        <thead><tr><th>네트워크</th><th>Conv1</th><th>Conv2</th><th>Conv3</th><th>FC1</th><th>FC2</th><th>파라미터</th><th>정확도 %</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. 이전 연구와 비교: 정확도(위)와 모델 크기(아래, 로그축)</h2>
+    <div class="legend"><span><i style="background:#1f7a4d"></i>This Work</span><span><i style="background:#7a8aa6"></i>이전 연구</span></div>
+    <div class="wrap"><svg id="c2" viewBox="0 0 900 400" role="img" aria-label="연구별 정확도와 파라미터 크기 막대그래프"></svg></div>
+  </div>
+
+  <div class="card">
+    <h2>3. 연구별 분류 동작 수</h2>
+    <div class="legend"><span><i style="background:#c2410c"></i>낙상 동작</span><span><i style="background:#2563eb"></i>비낙상 동작</span></div>
+    <div class="wrap"><svg id="c3" viewBox="0 0 900 260" role="img" aria-label="연구별 낙상과 비낙상 동작 수 누적 막대그래프"></svg></div>
+  </div>
+
+  <p class="note" id="meta"></p>
+
+  <footer>
+    자료: 논문 표 4(Network comparison experiment results)와 표 5(Comparison of networks with previous studies)에서 옮김.
+    파라미터 단위는 표 4가 개수, 표 5가 MB. 「없음」은 해당 층이 없다는 뜻. 표 5의 번호는 논문 참고문헌 번호.<br>
+    출처: <em>FPGA Implementation of a Radar-Based Fall Detection System Using Binarized Convolutional Neural Networks</em>,
+    Sensors 2026, 26, 2469. <a href="https://doi.org/10.3390/s26082469" target="_blank" rel="noopener">doi:10.3390/s26082469</a> (CC BY)
+  </footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  // 표 4. null = 해당 층 없음
+  const NETS = [
+    { n: 1, c1: 32, c2: 32, c3: null, fc1: 2,  fc2: null, params: 11168, acc: 89.9 },
+    { n: 2, c1: 32, c2: 32, c3: null, fc1: 32, fc2: 2,    params: 26656, acc: 93.8 },
+    { n: 3, c1: 64, c2: 64, c3: null, fc1: 2,  fc2: null, params: 40768, acc: 93.2 },
+    { n: 4, c1: 64, c2: 64, c3: null, fc1: 32, fc2: 2,    params: 71616, acc: 95.7 },
+    { n: 5, c1: 16, c2: 16, c3: 16,   fc1: 2,  fc2: null, params: 5136,  acc: 91.6 },
+    { n: 6, c1: 16, c2: 32, c3: 64,   fc1: 2,  fc2: null, params: 23792, acc: 92.8 },
+    { n: 7, c1: 32, c2: 32, c3: 32,   fc1: 2,  fc2: null, params: 19488, acc: 94.2 },
+    { n: 8, c1: 32, c2: 32, c3: 32,   fc1: 32, fc2: 2,    params: 20576, acc: 96.1, proposed: true },
+    { n: 9, c1: 32, c2: 64, c3: 128,  fc1: 2,  fc2: null, params: 93664, acc: 96.5 }
+  ];
+  // 표 5
+  const STUDIES = [
+    { ref: '[15]', radar: 'FMCW', net: 'CNN',    mb: 1.103,   fall: 4, nonfall: 3, acc: 95.2 },
+    { ref: '[16]', radar: 'FMCW', net: 'CNN',    mb: 2.324,   fall: 1, nonfall: 8, acc: 92.3 },
+    { ref: '[17]', radar: 'UWB',  net: 'CNN',    mb: 2.028,   fall: 3, nonfall: 2, acc: 95.8 },
+    { ref: '[18]', radar: 'CW',   net: 'CNN',    mb: 0.176,   fall: 2, nonfall: 2, acc: 93.4 },
+    { ref: '[19]', radar: 'CW',   net: 'CNN',    mb: 216.966, fall: 8, nonfall: 7, acc: 99.3 },
+    { ref: '[22]', radar: 'UWB',  net: 'Hybrid', mb: 0.659,   fall: 1, nonfall: 5, acc: 93 },
+    { ref: '[24]', radar: 'CW',   net: 'BNN',    mb: 0.012,   fall: 5, nonfall: 6, acc: 93.1, previous: true },
+    { ref: 'This Work', radar: 'CW', net: 'BCNN', mb: 0.002, fall: 5, nonfall: 7, acc: 96.1, thiswork: true }
+  ];
+  const $ = id => document.getElementById(id);
+  const GREEN = '#1f7a4d', OTHER = '#7a8aa6', FALL = '#c2410c', NONFALL = '#2563eb';
+  const fmt = n => n.toLocaleString('ko-KR');
+  const P = NETS.find(x => x.proposed), TW = STUDIES.find(x => x.thiswork);
+
+  // 고정 한 줄 결과 (논문 결론)
+  (function headline() {
+    const best = NETS.slice().sort((a, b) => b.acc - a.acc)[0];
+    const others = STUDIES.filter(s => !s.thiswork);
+    const redMin = Math.min(...others.map(s => 1 - TW.mb / s.mb)) * 100;
+    const redMax = Math.max(...others.map(s => 1 - TW.mb / s.mb)) * 100;
+    const h = $('headline'); h.textContent = '';
+    const b = document.createElement('b'); b.textContent = '제안 네트워크(' + P.n + '번)';
+    h.appendChild(b);
+    h.appendChild(document.createTextNode('는 파라미터 ' + fmt(P.params) + '개(약 2.5KB)로 정확도 ' + P.acc.toFixed(1) + '%. 가장 정확한 ' + best.n + '번(' + best.acc.toFixed(1) + '%)보다 파라미터가 ' + Math.round((1 - P.params / best.params) * 100) + '% 적고, 이전 연구 ' + others.length + '편보다 ' + redMin.toFixed(0) + '~' + redMax.toFixed(3) + '% 작아요.'));
+    $('t1').textContent = P.acc.toFixed(1) + '%'; $('t1d').textContent = '낙상 5 + 비낙상 7 동작 분류';
+    $('t2').textContent = fmt(P.params); $('t2d').textContent = '표 5 기준 0.002 MB';
+  })();
+
+  function readFilters() {
+    return {
+      conv: document.querySelector('input[name=conv]:checked').value,
+      fc: document.querySelector('input[name=fc]:checked').value,
+      radar: Array.from(document.querySelectorAll('.f-radar:checked')).map(e => e.value),
+      minAcc: +$('acc').value,
+      axis: document.querySelector('input[name=axis]:checked').value
+    };
+  }
+  const convLayers = x => x.c3 === null ? 2 : 3;
+  const hasFcHidden = x => x.fc2 !== null;
+  function netVisible(x, f) {
+    if (x.proposed) return true;
+    if (f.conv !== 'all' && convLayers(x) !== +f.conv) return false;
+    if (f.fc === 'yes' && !hasFcHidden(x)) return false;
+    if (f.fc === 'no' && hasFcHidden(x)) return false;
+    return true;
+  }
+  const studyVisible = (s, f) => s.thiswork || f.radar.includes(s.radar);
+  const dim = (acc, f) => acc < f.minAcc;
+
+  function draw() {
+    const f = readFilters();
+    $('accv').textContent = f.minAcc.toFixed(1) + '%';
+    const nets = NETS.filter(x => netVisible(x, f));
+    const studies = STUDIES.filter(s => studyVisible(s, f));
+    $('empty').hidden = !(nets.length === 1 && studies.length === 1);
+
+    // 타일 3, 4 (조건 안, 흐리게 처리된 것은 제외)
+    const cand = nets.filter(x => !dim(x.acc, f)).sort((a, b) => b.acc - a.acc || a.params - b.params)[0];
+    $('t3').textContent = cand ? cand.n + '번 ' + cand.acc.toFixed(1) + '%' : '—';
+    $('t3d').textContent = cand ? '파라미터 ' + fmt(cand.params) + (cand.proposed ? ' (제안)' : '') : '조건에 맞는 네트워크 없음';
+    const small = studies.filter(s => !s.thiswork && !dim(s.acc, f)).sort((a, b) => a.mb - b.mb)[0];
+    $('t4').textContent = small ? small.ref + ' ' + small.mb + ' MB' : '—';
+    $('t4d').textContent = small ? '정확도 ' + small.acc.toFixed(1) + '% · This Work 의 ' + Math.round(small.mb / TW.mb) + '배' : '조건에 맞는 이전 연구 없음';
+
+    drawScatter(nets, f);
+    drawTable(nets, f);
+    drawStudies(studies, f);
+    drawActivities(studies, f);
+
+    $('meta').textContent = '조건: Conv ' + (f.conv === 'all' ? '모두' : f.conv + '층') + ' · FC 은닉층 ' + ({ all: '모두', yes: '있음', no: '없음' })[f.fc]
+      + ' · 레이더 ' + (f.radar.length ? f.radar.join('·') : '선택 없음') + ' · 최소 정확도 ' + f.minAcc.toFixed(1) + '%'
+      + ' · 표시 중 네트워크 ' + nets.length + '/9, 연구 ' + studies.length + '/8';
+  }
+
+  function drawScatter(nets, f) {
+    const W = 900, H = 340, L = 56, R = 24, T = 20, B = 48;
+    const log = f.axis === 'log';
+    const xmin = log ? 4000 : 0, xmax = 100000;
+    const x = v => L + (log ? (Math.log10(v) - Math.log10(xmin)) / (Math.log10(xmax) - Math.log10(xmin)) : v / xmax) * (W - L - R);
+    const ymin = 88, ymax = 98;
+    const y = v => T + (1 - (v - ymin) / (ymax - ymin)) * (H - T - B);
+    let s = '';
+    for (let v = ymin; v <= ymax; v += 2) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="#e6e6e2"/><text x="' + (L - 8) + '" y="' + (y(v) + 4).toFixed(1) + '" font-size="11" text-anchor="end" fill="#888">' + v + '%</text>';
+    const ticks = log ? [5000, 10000, 20000, 50000, 100000] : [0, 20000, 40000, 60000, 80000, 100000];
+    ticks.forEach(v => { s += '<line x1="' + x(v).toFixed(1) + '" x2="' + x(v).toFixed(1) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#f0f0ec"/><text x="' + x(v).toFixed(1) + '" y="' + (H - B + 18) + '" font-size="11" text-anchor="middle" fill="#666">' + (v >= 1000 ? (v / 1000) + 'k' : v) + '</text>'; });
+    s += '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" font-size="12" text-anchor="middle" fill="#666">파라미터 수 (' + (log ? '로그' : '선형') + ')</text>';
+    nets.forEach(p => {
+      const d = dim(p.acc, f), cx = x(p.params), cy = y(p.acc);
+      if (p.proposed) {
+        s += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="11" fill="' + GREEN + '" fill-opacity="' + (d ? 0.3 : 1) + '"/>';
+        s += '<text x="' + (cx + 15).toFixed(1) + '" y="' + (cy + 4).toFixed(1) + '" font-size="13" font-weight="700" fill="' + GREEN + '">' + p.n + '번 (제안) ' + p.acc.toFixed(1) + '%</text>';
+      } else {
+        s += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="7" fill="' + OTHER + '" fill-opacity="' + (d ? 0.25 : 0.9) + '"/>';
+        s += '<text x="' + (cx + 10).toFixed(1) + '" y="' + (cy + 4).toFixed(1) + '" font-size="12" fill="' + (d ? '#bbb' : '#444') + '">' + p.n + '번</text>';
+      }
+    });
+    $('c1').innerHTML = s;
+  }
+
+  function drawTable(nets, f) {
+    const tb = $('rows'); tb.textContent = '';
+    nets.forEach(p => {
+      const tr = document.createElement('tr');
+      if (p.proposed) tr.className = 'hi'; else if (dim(p.acc, f)) tr.className = 'dim';
+      const cell = v => v === null ? '없음' : (typeof v === 'number' ? fmt(v) : v);
+      [p.n + (p.proposed ? ' (제안)' : ''), cell(p.c1), cell(p.c2), cell(p.c3), cell(p.fc1), cell(p.fc2), fmt(p.params), p.acc.toFixed(1)]
+        .forEach(c => { const td = document.createElement('td'); td.textContent = c; tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+  }
+
+  function drawStudies(studies, f) {
+    const W = 900, H = 400, L = 56, R = 16;
+    const n = studies.length, gw = (W - L - R) / n, bw = Math.min(64, gw * 0.6);
+    // 위: 정확도 88~100 / 아래: 파라미터 MB 로그 0.001~1000
+    const T1 = 16, B1 = 190, T2 = 230, B2 = 40;
+    const ya = v => T1 + (1 - (v - 88) / (100 - 88)) * (H - T1 - B1);
+    const lmin = -3, lmax = 3;
+    const yp = v => T2 + (1 - (Math.log10(v) - lmin) / (lmax - lmin)) * (H - T2 - B2);
+    let s = '';
+    for (let v = 88; v <= 100; v += 2) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + ya(v).toFixed(1) + '" y2="' + ya(v).toFixed(1) + '" stroke="#e6e6e2"/><text x="' + (L - 8) + '" y="' + (ya(v) + 4).toFixed(1) + '" font-size="11" text-anchor="end" fill="#888">' + v + '%</text>';
+    s += '<text x="' + L + '" y="' + (T1 - 4) + '" font-size="12" fill="#666">정확도</text>';
+    [0.001, 0.01, 0.1, 1, 10, 100, 1000].forEach(v => { s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yp(v).toFixed(1) + '" y2="' + yp(v).toFixed(1) + '" stroke="#e6e6e2"/><text x="' + (L - 8) + '" y="' + (yp(v) + 4).toFixed(1) + '" font-size="11" text-anchor="end" fill="#888">' + v + '</text>'; });
+    s += '<text x="' + L + '" y="' + (T2 - 6) + '" font-size="12" fill="#666">파라미터 (MB, 로그축)</text>';
+    studies.forEach((st, i) => {
+      const cx = L + i * gw + gw / 2, x0 = cx - bw / 2, col = st.thiswork ? GREEN : OTHER, op = dim(st.acc, f) ? 0.3 : 1;
+      s += '<rect x="' + x0.toFixed(1) + '" y="' + ya(st.acc).toFixed(1) + '" width="' + bw + '" height="' + (ya(88) - ya(st.acc)).toFixed(1) + '" fill="' + col + '" fill-opacity="' + op + '" rx="3"/>';
+      s += '<text x="' + cx.toFixed(1) + '" y="' + (ya(st.acc) - 6).toFixed(1) + '" font-size="12" font-weight="700" text-anchor="middle" fill="#1d1d1b" fill-opacity="' + op + '">' + st.acc.toFixed(1) + '</text>';
+      const yb = yp(st.mb);
+      s += '<rect x="' + x0.toFixed(1) + '" y="' + yb.toFixed(1) + '" width="' + bw + '" height="' + (yp(0.001) - yb).toFixed(1) + '" fill="' + col + '" fill-opacity="' + op + '" rx="3"/>';
+      s += '<text x="' + cx.toFixed(1) + '" y="' + (yb - 6).toFixed(1) + '" font-size="12" text-anchor="middle" fill="#1d1d1b" fill-opacity="' + op + '">' + st.mb + '</text>';
+      s += '<text x="' + cx.toFixed(1) + '" y="' + (H - 20) + '" font-size="12" font-weight="' + (st.thiswork ? 700 : 400) + '" text-anchor="middle" fill="' + (st.thiswork ? GREEN : '#444') + '">' + st.ref + '</text>';
+      s += '<text x="' + cx.toFixed(1) + '" y="' + (H - 6) + '" font-size="11" text-anchor="middle" fill="#888">' + st.radar + ' · ' + st.net + '</text>';
+    });
+    $('c2').innerHTML = s;
+  }
+
+  function drawActivities(studies, f) {
+    const W = 900, H = 260, L = 56, R = 16, T = 16, B = 44;
+    const n = studies.length, gw = (W - L - R) / n, bw = Math.min(64, gw * 0.6);
+    const max = 16;
+    const y = v => T + (1 - v / max) * (H - T - B);
+    let s = '';
+    for (let v = 0; v <= max; v += 4) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="#e6e6e2"/><text x="' + (L - 8) + '" y="' + (y(v) + 4).toFixed(1) + '" font-size="11" text-anchor="end" fill="#888">' + v + '</text>';
+    s += '<text x="' + L + '" y="' + (T - 4) + '" font-size="12" fill="#666">동작 수</text>';
+    studies.forEach((st, i) => {
+      const cx = L + i * gw + gw / 2, x0 = cx - bw / 2, op = dim(st.acc, f) ? 0.3 : 1;
+      s += '<rect x="' + x0.toFixed(1) + '" y="' + y(st.fall).toFixed(1) + '" width="' + bw + '" height="' + (y(0) - y(st.fall)).toFixed(1) + '" fill="' + FALL + '" fill-opacity="' + op + '"/>';
+      s += '<rect x="' + x0.toFixed(1) + '" y="' + y(st.fall + st.nonfall).toFixed(1) + '" width="' + bw + '" height="' + (y(0) - y(st.nonfall)).toFixed(1) + '" fill="' + NONFALL + '" fill-opacity="' + op + '"/>';
+      s += '<text x="' + cx.toFixed(1) + '" y="' + (y(st.fall + st.nonfall) - 6).toFixed(1) + '" font-size="12" font-weight="700" text-anchor="middle" fill="#1d1d1b" fill-opacity="' + op + '">' + (st.fall + st.nonfall) + '</text>';
+      s += '<text x="' + cx.toFixed(1) + '" y="' + (H - 22) + '" font-size="12" font-weight="' + (st.thiswork ? 700 : 400) + '" text-anchor="middle" fill="' + (st.thiswork ? GREEN : '#444') + '">' + st.ref + '</text>';
+      s += '<text x="' + cx.toFixed(1) + '" y="' + (H - 8) + '" font-size="11" text-anchor="middle" fill="#888">낙상 ' + st.fall + ' · 비낙상 ' + st.nonfall + '</text>';
+    });
+    $('c3').innerHTML = s;
+  }
+
+  document.querySelectorAll('input[name=conv], input[name=fc], input[name=axis], .f-radar').forEach(el => el.addEventListener('change', draw));
+  $('acc').addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

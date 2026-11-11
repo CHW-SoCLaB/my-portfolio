@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>연구 · 조형원</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="top"><a href="index.html">소개</a><a class="on" href="research.html">연구</a><a href="works.html">작업물</a></nav>
+<main>
+  <h1>연구</h1>
+  <p class="sub">CW 레이더와 이진화 신경망으로 낙상을 감지하고, 이를 FPGA SoC에서 실시간으로 동작시키는 연구입니다. 숫자는 모두 발표된 논문에서 가져왔습니다.</p>
+
+  <h2 id="main">대표 연구</h2>
+  <div class="card">
+    <span class="tag">SCI(E) 저널 · 제1저자</span>
+    <h3 style="margin-top:8px">FPGA Implementation of a Radar-Based Fall Detection System Using Binarized Convolutional Neural Networks</h3>
+    <p class="note">Sensors 2026, 26, 2469 · 접수 2026-03-18, 게재 2026-04-17 · <a href="https://doi.org/10.3390/s26082469" target="_blank" rel="noopener">doi:10.3390/s26082469</a></p>
+    <dl class="kv">
+      <dt>연구 질문</dt>
+      <dd>레이더 기반 낙상 감지를 작고 전력이 낮은 엣지 장치에서 실시간으로 돌릴 수 있는가? 기존 연구는 정확도는 높지만 CPU·GPU에 의존해 집 안 여러 곳에 두기 어려웠다.</dd>
+      <dt>내가 한 일 (저자 기여문 기준: 시스템 설계와 구현, 레이더 데이터 수집, 실험과 평가, 논문 작성)</dt>
+      <dd>
+        <ul>
+          <li>12개 동작 2,570 샘플 데이터셋 구축, 고정소수점 FFT 포맷 6종 비교, 네트워크 구조 9종 비교로 8번 구조 선정</li>
+          <li>전처리 가속기(PPU)와 신경망 가속기(NNU)를 RTL로 설계하고 AXI로 마이크로프로세서와 통합해 ZCU104에 구현</li>
+        </ul>
+      </dd>
+      <dt>알아낸 것</dt>
+      <dd>
+        <ul>
+          <li>파라미터 20,576개(약 2.5KB)로 12개 동작 분류 정확도 96.1%. 비교한 이전 연구 7편 대비 모델 크기 최대 99.9% 감소</li>
+          <li>전체 처리 2.58ms로 소프트웨어 대비 89.5배(전처리 387.5배, 추론 86.7배). 자원 1,534 LUT, 521 레지스터, 6 DSP, 4.5 BRAM</li>
+          <li>절댓값 근사 magnitude와 임계값 이진화를 써도 정확도 손실이 0.2%p(96.3% → 96.1%)에 그침</li>
+          <li>5-fold 95.95%(±0.24), 피험자 독립 95.13%(±0.72)로 분할 방식이 바뀌어도 성능이 유지됨</li>
+        </ul>
+      </dd>
+      <dt>다음 할 것 (논문 결론의 향후 과제)</dt>
+      <dd>거리·환경 변화에 강하도록 적응형 임계값 또는 AGC 적용, 거리 정보를 얻기 위한 FMCW 레이더 검토, RF 간섭이 있는 환경 고려</dd>
+    </dl>
+    <p style="margin-top:12px"><a class="btn" href="dashboard.html">표 4·표 5 대시보드로 보기</a></p>
+  </div>
+
+  <h2 id="papers">논문별 결과</h2>
+  <div class="card">
+    <h3>Fall detection based on continuous wave radar sensor using binarized neural networks</h3>
+    <p class="note">Applied Sciences 2025, 15, 546 · 제1저자 · 저널</p>
+    <ul>
+      <li>낙상 5종 + 비낙상 6종 분류 정확도 93.1%, 모델 크기 0.012MB (Sensors 2026 표 5 기준)</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>CW 레이다 기반 낙상 감지 시스템의 FPGA 구현</h3>
+    <p class="note">2025년 대한전자공학회 하계학술대회 · 제1저자</p>
+    <ul>
+      <li>11개 동작(낙상 5, 비낙상 6) 분류 정확도 93.1%. 학습 1,740개, 검증 452개</li>
+      <li>BNN 추론 가속기 응답 시간 약 3.6ms, GPU 구현(993.6ms) 대비 약 99.6% 감소</li>
+      <li>Xilinx ZCU104 구현 자원: 1,571 LUT, 513 FF, 17.5 BRAM</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>CW 레이다 센서 기반 경량 낙상 감지 시스템</h3>
+    <p class="note">2024년 한국전기전자학회 학술대회 · 제1저자</p>
+    <ul>
+      <li>11개 동작, 데이터 1,740개(낙상 565, 비낙상 1,175)로 정확도 92.2%, Precision 90.7%, Recall 84.3%, F1 87.4%</li>
+      <li>모델 10종 비교 실험 후 파라미터 0.3M 모델 선정</li>
+      <li>같은 구조 CNN 대비 메모리 사용량 96.9% 감소</li>
+    </ul>
+  </div>
+
+  <h2 id="data">데이터셋 구축과 학습 환경</h2>
+  <div class="card">
+    <p>24GHz CW 레이더(Sense2GoL) 측정 환경을 설계하고 데이터를 직접 수집했습니다. STFT 기반 전처리와 고정소수점 FFT 포맷 선정, 네트워크 구조 비교 실험까지 맡았습니다. 학습 코드는 Python/PyTorch 환경입니다.</p>
+    <div class="wrap"><table>
+      <tr><th>데이터셋</th><td>12개 동작 2,570 샘플, 피험자 5명, 측정 세션 7회, 6m × 4.5m 환경, 거리 1~6m</td></tr>
+      <tr><th>전처리</th><td>Hamming 창 128, 50% 겹침, 128점 FFT. 고정소수점 포맷 6종 비교로 Q(16,11) 선정(SQNR 47.9dB)</td></tr>
+      <tr><th>네트워크 선정</th><td>구조 9종 비교(파라미터 5,136~93,664개)로 8번 구조 선정</td></tr>
+      <tr><th>학습</th><td>200 epoch, batch 32, Adam, NVIDIA RTX A6000</td></tr>
+    </table></div>
+  </div>
+
+  <h2 id="hw">가속기와 SoC 설계</h2>
+  <div class="card">
+    <p>윈도잉·128점 radix-2 FFT·이진화 블록으로 구성된 전처리 가속기(PPU)와 XNOR/popcount 기반 신경망 가속기(NNU)를 RTL로 설계하고, AXI 마스터/슬레이브 인터페이스로 마이크로프로세서와 통합해 Zynq UltraScale+ ZCU104에서 검증했습니다. 도구는 Verilog/SystemVerilog, Vivado, C 펌웨어(Xilinx SDK)입니다.</p>
+    <div class="wrap"><table>
+      <thead><tr><th>유닛</th><th>LUT</th><th>레지스터</th><th>DSP</th><th>BRAM</th><th>최대 주파수</th><th>SW → HW</th></tr></thead>
+      <tbody>
+        <tr><td>PPU (전처리)</td><td>613</td><td>268</td><td>6</td><td>1.5</td><td>230MHz</td><td>9.3ms → 0.024ms (387.5배)</td></tr>
+        <tr><td>NNU (추론)</td><td>921</td><td>253</td><td>0</td><td>3</td><td>133MHz</td><td>221.6ms → 2.556ms (86.7배)</td></tr>
+        <tr><td>합계</td><td>1,534</td><td>521</td><td>6</td><td>4.5</td><td></td><td>230.9ms → 2.580ms (89.5배)</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note" style="margin-top:8px">전력 3.489W(동적 2.797W, 정적 0.693W). 가속기 자체 동적 전력은 NNU 16mW, PPU 10mW. 소프트웨어 시간은 ARM Cortex-A53 1.5GHz 기준.</p>
+  </div>
+</main>
+<footer>이 페이지는 Claude Code와 함께 만들었고 내용은 본인이 확인했다. 자료 출처: 본인 논문 4편(Sensors 2026, Applied Sciences 2025, 2025 대한전자공학회, 2024 한국전기전자학회).</footer>
+</body>
+</html>
